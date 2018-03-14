@@ -2,7 +2,6 @@ module App.Component where
 
 import Prelude
 
-import Data.Newtype (unwrap)
 import Control.Monad.Aff.Class (class MonadAff)
 import Control.Monad.Aff.Console (log, CONSOLE)
 import Control.Monad.Eff.Random (RANDOM)
@@ -10,9 +9,11 @@ import Data.Array (head)
 import Data.Lens (Lens', set)
 import Data.Lens.Record (prop)
 import Data.Maybe (Maybe(Just, Nothing))
+import Data.Newtype (unwrap)
 import Data.Symbol (SProxy(..))
 import Data.Tuple (Tuple(..), fst, snd)
 import Data.Variant (case_, on)
+import Fields (getCommonField)
 import Form (FormFieldValue, FormFieldValidate, Email, Field(PasswordField, EmailField), RawForm, signupForm)
 import Halogen as H
 import Halogen.HTML as HH
@@ -94,10 +95,7 @@ component =
     formControl
       { helpText: Nothing
       , validation: case value of
-          Invalid err -> head err <#> ( case_
-            # on (SProxy :: SProxy "malformed") _.text
-            # on (SProxy :: SProxy "inUse") _.text
-          )
+          Invalid err -> head err <#> getCommonField (SProxy :: SProxy "text")
           Valid _ _ -> Nothing
       , label
       , inputId: label
@@ -111,11 +109,7 @@ component =
     formControl
       { helpText: Just helpText
       , validation: case value of
-          Invalid err -> head err <#> ( case_
-            # on (SProxy :: SProxy "tooShort") _.text
-            # on (SProxy :: SProxy "tooLong") _.text
-            # on (SProxy :: SProxy "missingDigit") _.text
-          )
+          Invalid err -> head err <#> getCommonField (SProxy :: SProxy "text")
           Valid _ _ -> Nothing
       , label
       , inputId: label
